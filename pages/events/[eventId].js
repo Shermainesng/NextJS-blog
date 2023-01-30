@@ -1,5 +1,6 @@
 import { useRouter } from "next/router";
 import { Fragment } from "react";
+import Head from 'next/head';
 
 import { getEventById, getAllEvents } from "../../helpers/api-util";
 import EventSummary from "../../components/event-detail/event-summary";
@@ -11,13 +12,20 @@ function EventDetailPage(props) {
   const event = props.selectedEvent;
 
   if (!event) {
-    <ErrorAlert>
-      return <p>No event found!</p>;
-    </ErrorAlert>;
+    <div className="center">
+      <p>Loading</p>
+    </div>;
   }
 
   return (
     <Fragment>
+        <Head>
+        <title>{event.title}</title>
+        <meta
+          name="description" 
+        content={event.description}
+        />
+      </Head>
       <EventSummary title={event.title} />
       <EventLogistics date={event.date} address={event.location} image={event.image} imageAlt={event.title} />
       <EventContent>
@@ -35,19 +43,19 @@ export async function getStaticProps(context) {
   return {
     props: {
       selectedEvent: event
-    }
+    }, 
+    revalidate: 30
   };
 }
 
 export async function getStaticPaths() {
   const events = await getAllEvents();
 
-  const paths = events.map(events => ({ params: { eventId: events.id } }));
+  const paths = events.map(event => ({ params: { eventId: event.id } }));
   return {
     paths: paths,
-    fallback: false
+    fallback: false //tells NEXT that there are no more pages besides the one we pre-generated here 
   };
 }
 
 export default EventDetailPage;
-_;
